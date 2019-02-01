@@ -32,17 +32,11 @@ data "template_file" "user_data" {
   }
 }
 
-data "template_file" "network_config" {
-  count    = "${var.instance["count"]}"
-  template = "${file("${path.module}/network_config.cfg")}"
-}
-
 resource "libvirt_cloudinit_disk" "cloud_init" {
-  count          = "${var.instance["count"]}"
-  pool           = "vm_images"
-  name           = "${var.instance["base_name"]}-${count.index}-cloud_init.iso"
-  user_data      = "${element(data.template_file.user_data.*.rendered, count.index)}"
-  network_config = "${element(data.template_file.network_config.*.rendered, count.index)}"
+  count     = "${var.instance["count"]}"
+  pool      = "vm_images"
+  name      = "${var.instance["base_name"]}-${count.index}-cloud_init.iso"
+  user_data = "${element(data.template_file.user_data.*.rendered, count.index)}"
 }
 
 # Root disk for each instance
