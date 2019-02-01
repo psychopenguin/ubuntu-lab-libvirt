@@ -2,6 +2,18 @@ provider "libvirt" {
   uri = "qemu:///system"
 }
 
+# Network definition
+
+resource "libvirt_network" "lab-network" {
+  name      = "lab-network"
+  addresses = ["192.168.42.0/24"]
+  mode      = "nat"
+
+  dhcp {
+    enabled = true
+  }
+}
+
 # Base image to build instances
 # resource "libvirt_volume" "ubuntu_image" {
 #  name = "${var.ubuntu_release}.img"
@@ -64,7 +76,7 @@ resource "libvirt_domain" "vm" {
   }
 
   network_interface {
-    network_name   = "default"
+    network_id     = "${libvirt_network.lab-network.id}"
     wait_for_lease = true
   }
 }
