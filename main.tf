@@ -2,24 +2,11 @@ provider "libvirt" {
   uri = "qemu:///system"
 }
 
-# Network definition
-
-resource "libvirt_network" "lab-network" {
-  name      = "lab-network"
-  addresses = ["192.168.42.0/24"]
-  mode      = "nat"
-
-  dhcp {
-    enabled = true
-  }
-}
-
 # Base image to build instances
-# resource "libvirt_volume" "ubuntu_image" {
-#  name = "${var.ubuntu_release}.img"
-#  pool = "isos"
-# source = "https://cloud-images.ubuntu.com/${var.ubuntu_release}/current/${var.ubuntu_release}-server-cloudimg-amd64.img"
-#}
+#resource "libvirt_volume" "ubuntu_image" {
+  #  name   = "${var.ubuntu_release}.img"
+  #  source = "https://cloud-images.ubuntu.com/${var.ubuntu_release}/current/${var.ubuntu_release}-server-cloudimg-amd64.img"
+  #}
 
 # Cloud init templates
 
@@ -34,7 +21,6 @@ data "template_file" "user_data" {
 
 resource "libvirt_cloudinit_disk" "cloud_init" {
   count     = "${var.instance["count"]}"
-  pool      = "vm_images"
   name      = "${var.instance["base_name"]}-${count.index}-cloud_init.iso"
   user_data = "${element(data.template_file.user_data.*.rendered, count.index)}"
 }
@@ -43,9 +29,7 @@ resource "libvirt_cloudinit_disk" "cloud_init" {
 
 resource "libvirt_volume" "boot_disk" {
   count            = "${var.instance["count"]}"
-  pool             = "vm_images"
   base_volume_name = "${var.ubuntu_release}.img"
-  base_volume_pool = "isos"
   size             = "${var.instance["disksize"]}"
   name             = "${var.instance["base_name"]}-${count.index}-boot_disk.img"
 }
@@ -70,7 +54,7 @@ resource "libvirt_domain" "vm" {
   }
 
   network_interface {
-    network_id     = "${libvirt_network.lab-network.id}"
+    network_name = "default"
     wait_for_lease = true
   }
 }
